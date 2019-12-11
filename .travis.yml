@@ -1,0 +1,19 @@
+sudo: required
+  - docker
+  
+before_install:
+  - docker build -t marsutton/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true marsutton/react-test npm test
+
+after_success:
+  - docker build -t marsutton/multi-client ./client
+  - docker build -t marsutton/multi-nginx ./nginx
+  - docker build -t marsutton/multi-server ./server
+  - docker build -t marsutton/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push marsutton/multi-client
+  - docker push marsutton/multi-nginx
+  - docker push marsutton/multi-server
+  - docker push marsutton/multi-worker
